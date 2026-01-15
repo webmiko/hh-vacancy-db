@@ -214,3 +214,160 @@ class TestHeadHunterAPI:
         # Проверки
         assert result["employer"] is None
         assert result["vacancies"] == []
+
+    @patch("src.api.hh_api.requests.get")
+    def test_get_employer_request_exception(self, mock_get: Mock) -> None:
+        """Тест обработки RequestException при получении работодателя."""
+        mock_get.side_effect = requests.RequestException("Connection error")
+
+        api = HeadHunterAPI()
+        result = api.get_employer(1455)
+
+        assert result is None
+
+    @patch("src.api.hh_api.requests.get")
+    def test_get_employer_value_error(self, mock_get: Mock) -> None:
+        """Тест обработки ValueError при парсинге JSON."""
+        mock_response = Mock()
+        mock_response.raise_for_status = Mock()
+        mock_response.json.side_effect = ValueError("Invalid JSON")
+        mock_get.return_value = mock_response
+
+        api = HeadHunterAPI()
+        result = api.get_employer(1455)
+
+        assert result is None
+
+    @patch("src.api.hh_api.requests.get")
+    def test_get_employer_http_error_500(self, mock_get: Mock) -> None:
+        """Тест обработки HTTP ошибки 500."""
+        mock_response = Mock()
+        mock_response.status_code = 500
+        mock_response.raise_for_status.side_effect = requests.HTTPError(response=mock_response)
+        mock_get.return_value = mock_response
+
+        api = HeadHunterAPI()
+        result = api.get_employer(1455)
+
+        assert result is None
+
+    @patch("src.api.hh_api.requests.get")
+    def test_get_vacancies_pagination(self, mock_get: Mock) -> None:
+        """Тест пагинации при получении вакансий."""
+        # Первая страница
+        page1_response = Mock()
+        page1_response.json.return_value = {
+            "items": [{"id": "1", "name": "Vacancy 1"}],
+            "pages": 2,
+            "per_page": 100,
+            "page": 0,
+            "found": 2,
+        }
+        page1_response.raise_for_status = Mock()
+
+        # Вторая страница
+        page2_response = Mock()
+        page2_response.json.return_value = {
+            "items": [{"id": "2", "name": "Vacancy 2"}],
+            "pages": 2,
+            "per_page": 100,
+            "page": 1,
+            "found": 2,
+        }
+        page2_response.raise_for_status = Mock()
+
+        mock_get.side_effect = [page1_response, page2_response]
+
+        api = HeadHunterAPI()
+        result = api.get_vacancies(1455)
+
+        assert len(result) == 2
+        assert result[0]["id"] == "1"
+        assert result[1]["id"] == "2"
+
+    @patch("src.api.hh_api.requests.get")
+    def test_get_vacancies_no_items_key(self, mock_get: Mock) -> None:
+        """Тест обработки ответа без ключа items."""
+        mock_response = Mock()
+        mock_response.json.return_value = {"pages": 1, "per_page": 100, "page": 0, "found": 0}
+        mock_response.raise_for_status = Mock()
+        mock_get.return_value = mock_response
+
+        api = HeadHunterAPI()
+        result = api.get_vacancies(1455)
+
+        assert result == []
+
+    @patch("src.api.hh_api.requests.get")
+    def test_get_vacancies_items_not_list(self, mock_get: Mock) -> None:
+        """Тест обработки случая, когда items не является списком."""
+        mock_response = Mock()
+        mock_response.json.return_value = {"items": "not a list", "pages": 1}
+        mock_response.raise_for_status = Mock()
+        mock_get.return_value = mock_response
+
+        api = HeadHunterAPI()
+        result = api.get_vacancies(1455)
+
+        assert result == []
+
+    @patch("src.api.hh_api.requests.get")
+    def test_get_vacancies_json_error(self, mock_get: Mock) -> None:
+        """Тест обработки ошибки парсинга JSON при получении вакансий."""
+        mock_response = Mock()
+        mock_response.raise_for_status = Mock()
+        mock_response.json.side_effect = ValueError("Invalid JSON")
+        mock_get.return_value = mock_response
+
+        api = HeadHunterAPI()
+        result = api.get_vacancies(1455)
+
+        assert result == []
+
+    @patch("src.api.hh_api.requests.get")
+    def test_get_vacancies_key_error(self, mock_get: Mock) -> None:
+        """Тест обработки KeyError при получении вакансий."""
+        mock_response = Mock()
+        mock_response.json.side_effect = KeyError("missing_key")
+        mock_response.raise_for_status = Mock()
+        mock_get.return_value = mock_response
+
+        api = HeadHunterAPI()
+        result = api.get_vacancies(1455)
+
+        assert result == []
+
+    @patch("src.api.hh_api.requests.get")
+    def test_get_vacancies_exception(self, mock_get: Mock) -> None:
+        """Тест обработки общего Exception при получении вакансий."""
+        mock_get.side_effect = Exception("Unexpected error")
+
+        api = HeadHunterAPI()
+        result = api.get_vacancies(1455)
+
+        assert result == []
+
+    @patch("src.api.hh_api.requests.get")
+    def test_get_employer_exception(self, mock_get: Mock) -> None:
+        """Тест обработки общего Exception при получении работодателя."""
+        mock_get.side_effect = Exception("Unexpected error")
+
+        api = HeadHunterAPI()
+        result = api.get_employer(1455)
+
+        assert result is None
+
+    @patch("src.api.hh_api.requests.get")
+    def test_get_vacancies_http_error_500(self, mock_get: Mock) -> None:
+        """Тест обработки HTTP ошибки 500 при получении вакансий."""
+        import requests
+
+        mock_response = Mock()
+        mock_response.status_code = 500
+        mock_response.raise_for_status.side_effect = requests.HTTPError(response=mock_response)
+        mock_get.return_value = mock_response
+
+        api = HeadHunterAPI()
+        result = api.get_vacancies(1455)
+
+        assert result == []
