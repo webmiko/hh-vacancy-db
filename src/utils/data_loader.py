@@ -23,16 +23,16 @@ ENCODING = "utf-8"
 
 # Список ID компаний для загрузки (минимум 10)
 DEFAULT_EMPLOYER_IDS = [
-    1455,   # HeadHunter
-    3529,   # Сбер
+    1455,  # HeadHunter
+    3529,  # Сбер
     78638,  # Тинькофф
     1122462,  # Яндекс
-    1740,   # МТС
+    1740,  # МТС
     15478,  # VK
-    2180,   # Озон
+    2180,  # Озон
     87021,  # Альфа-Банк
     907345,  # Мегафон
-    4934,   # Ростелеком
+    4934,  # Ростелеком
 ]
 
 
@@ -101,6 +101,7 @@ def load_data_to_db(
         Загрузка данных о 2 компаниях...
     """
     import os
+
     from dotenv import load_dotenv
 
     load_dotenv()
@@ -195,8 +196,8 @@ def load_data_to_db(
             if vacancies_to_insert:
                 try:
                     insert_vacancy_query = """
-                        INSERT INTO vacancies 
-                        (vacancy_id, employer_id, name, url, salary_from, salary_to, 
+                        INSERT INTO vacancies
+                        (vacancy_id, employer_id, name, url, salary_from, salary_to,
                          currency, requirement, responsibility, published_at)
                         VALUES %s
                         ON CONFLICT (vacancy_id) DO UPDATE

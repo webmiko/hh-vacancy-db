@@ -182,7 +182,16 @@ class Vacancy:
     def to_db_tuple(
         self,
     ) -> Tuple[
-        int, int, str, Optional[str], Optional[int], Optional[int], Optional[str], Optional[str], Optional[str], Optional[datetime]
+        int,
+        int,
+        str,
+        Optional[str],
+        Optional[int],
+        Optional[int],
+        Optional[str],
+        Optional[str],
+        Optional[str],
+        Optional[datetime],
     ]:
         """
         Преобразует объект Vacancy в кортеж для вставки в базу данных.

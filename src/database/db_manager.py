@@ -8,12 +8,12 @@
 import logging
 import os
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional
 
 # 2. Импорты сторонних библиотек
 import psycopg2
-from psycopg2.extras import RealDictCursor
 from dotenv import load_dotenv
+from psycopg2.extras import RealDictCursor
 
 # 3. Импорты из проекта
 # (нет локальных импортов)
@@ -145,7 +145,7 @@ class DBManager:
         logger.info("Получение списка компаний и количества вакансий")
 
         query = """
-            SELECT 
+            SELECT
                 e.name,
                 COUNT(v.vacancy_id) as vacancies_count
             FROM employers e
@@ -200,7 +200,7 @@ class DBManager:
         logger.info("Получение списка всех вакансий")
 
         query = """
-            SELECT 
+            SELECT
                 e.name as company_name,
                 v.name as vacancy_name,
                 v.salary_from,

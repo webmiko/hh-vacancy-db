@@ -8,13 +8,13 @@
 import logging
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, cast
 
 # 2. Импорты сторонних библиотек
 import psycopg2
+from dotenv import load_dotenv
 from psycopg2 import sql
 from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
-from dotenv import load_dotenv
 
 # 3. Импорты из проекта
 # (нет локальных импортов)
@@ -24,6 +24,7 @@ ENCODING = "utf-8"
 
 # Загрузка переменных окружения
 load_dotenv()
+
 
 # 5. Приватные функции
 def _setup_logger() -> logging.Logger:
@@ -170,11 +171,7 @@ class DBCreator:
                 logger.info(f"База данных {self.database} уже существует")
             else:
                 # Создаем базу данных
-                cursor.execute(
-                    sql.SQL("CREATE DATABASE {}").format(
-                        sql.Identifier(self.database)
-                    )
-                )
+                cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(self.database)))
                 logger.info(f"База данных {self.database} успешно создана")
 
             cursor.close()
@@ -219,7 +216,7 @@ class DBCreator:
             # Создание индекса для employers
             cursor.execute(
                 """
-                CREATE INDEX IF NOT EXISTS idx_employers_name 
+                CREATE INDEX IF NOT EXISTS idx_employers_name
                 ON employers(name)
                 """
             )
@@ -238,8 +235,8 @@ class DBCreator:
                     requirement TEXT,
                     responsibility TEXT,
                     published_at TIMESTAMP,
-                    CONSTRAINT fk_employer 
-                        FOREIGN KEY (employer_id) 
+                    CONSTRAINT fk_employer
+                        FOREIGN KEY (employer_id)
                         REFERENCES employers(employer_id)
                         ON DELETE CASCADE
                 )
@@ -250,28 +247,28 @@ class DBCreator:
             # Создание индексов для vacancies
             cursor.execute(
                 """
-                CREATE INDEX IF NOT EXISTS idx_vacancies_employer_id 
+                CREATE INDEX IF NOT EXISTS idx_vacancies_employer_id
                 ON vacancies(employer_id)
                 """
             )
 
             cursor.execute(
                 """
-                CREATE INDEX IF NOT EXISTS idx_vacancies_salary_from 
+                CREATE INDEX IF NOT EXISTS idx_vacancies_salary_from
                 ON vacancies(salary_from)
                 """
             )
 
             cursor.execute(
                 """
-                CREATE INDEX IF NOT EXISTS idx_vacancies_name 
+                CREATE INDEX IF NOT EXISTS idx_vacancies_name
                 ON vacancies(name)
                 """
             )
 
             cursor.execute(
                 """
-                CREATE INDEX IF NOT EXISTS idx_vacancies_published_at 
+                CREATE INDEX IF NOT EXISTS idx_vacancies_published_at
                 ON vacancies(published_at)
                 """
             )
@@ -365,14 +362,15 @@ class DBCreator:
 
             cursor.execute(
                 """
-                SELECT COUNT(*) 
-                FROM information_schema.tables 
-                WHERE table_schema = 'public' 
+                SELECT COUNT(*)
+                FROM information_schema.tables
+                WHERE table_schema = 'public'
                 AND table_name IN ('employers', 'vacancies')
                 """
             )
 
-            count = cursor.fetchone()[0]
+            result = cursor.fetchone()
+            count = cast(int, result[0]) if result else 0
             exists = count == 2
 
             cursor.close()

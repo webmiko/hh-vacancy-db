@@ -7,7 +7,7 @@
 # 1. Импорты стандартной библиотеки
 import logging
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 # 2. Импорты сторонних библиотек
 import requests
@@ -113,7 +113,7 @@ class HeadHunterAPI:
 
             employer_data = response.json()
             logger.info(f"Успешно получены данные о работодателе: {employer_data.get('name', 'Unknown')}")
-            return employer_data
+            return cast(Dict[str, Any], employer_data)
 
         except requests.HTTPError as e:
             if e.response.status_code == 404:

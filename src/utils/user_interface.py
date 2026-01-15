@@ -5,13 +5,14 @@
 """
 
 # 1. Импорты стандартной библиотеки
-from typing import Any, Dict, List
+from typing import Any
+
+# 3. Импорты из проекта
+from src.database.db_manager import DBManager
 
 # 2. Импорты сторонних библиотек
 # (нет сторонних импортов)
 
-# 3. Импорты из проекта
-from src.database.db_manager import DBManager
 
 # 4. Константы модуля
 # (нет констант)

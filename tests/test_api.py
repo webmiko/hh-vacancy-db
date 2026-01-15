@@ -1,8 +1,8 @@
 """Тесты для модуля работы с API hh.ru."""
 
 # 1. Импорты стандартной библиотеки
-from unittest.mock import Mock, patch
 from typing import Any, Dict
+from unittest.mock import Mock, patch
 
 # 2. Импорты сторонних библиотек
 import pytest
@@ -131,9 +131,7 @@ class TestHeadHunterAPI:
         assert api.get_employer(0) is None
 
     @patch("src.api.hh_api.requests.get")
-    def test_get_vacancies_success(
-        self, mock_get: Mock, sample_vacancies_response: Dict[str, Any]
-    ) -> None:
+    def test_get_vacancies_success(self, mock_get: Mock, sample_vacancies_response: Dict[str, Any]) -> None:
         """Тест успешного получения списка вакансий."""
         # Настройка мока
         mock_response = Mock()

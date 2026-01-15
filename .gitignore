@@ -15,6 +15,18 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+*.egg
+.Python
+pip-log.txt
+pip-delete-this-directory.txt
+.tox/
+.coverage
+.coverage.*
+coverage.xml
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
 
 # Логи
 *.log
@@ -24,33 +36,64 @@ logs/
 # data/*.json
 # data/*.csv
 
-# IDE
+# Базы данных
+*.db
+*.sqlite
+*.sqlite3
+*.db-journal
+*.db-wal
+*.db-shm
+*.dump
+*.sql.gz
+*.sql.bz2
+
+# IDE и редакторы
 .idea/
 .vscode/
 *.swp
 *.swo
+*.sublime-project
+*.sublime-workspace
 .DS_Store
+Thumbs.db
+*.sublime-*
 
-# Переменные окружения
+# Переменные окружения и конфиденциальная информация
 .env
 .env.local
 .env.*.local
+.env.*
+*.env
+!.env.example
+# Секреты и ключи
+*.key
+*.pem
+*.p12
+*.pfx
+*.crt
+*.cer
+*secret*
+*password*
+*token*
+*credentials*
+config.ini
+secrets.json
 
 # Отчеты и тесты
 reports/
 temp_reports/
-.coverage
-.coverage.*
-coverage.xml
-htmlcov/
+test-results/
 .pytest_cache/
 .tox/
-.mypy_cache/
-.dmypy.json
-dmypy.json
 
 # Временные файлы
 *.tmp
+*.temp
+*.bak
+*.backup
+*~
+.#*
+#*
 
 # Jupyter Notebook
 .ipynb_checkpoints
@@ -64,3 +107,19 @@ celerybeat.pid
 
 # SageMath parsed files
 *.sage.py
+
+# Операционная система
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Архивы (опционально, если не нужны в репозитории)
+*.zip
+*.tar
+*.tar.gz
+*.rar
+*.7z

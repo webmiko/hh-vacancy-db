@@ -8,14 +8,15 @@ import logging
 import sys
 from pathlib import Path
 
-# 2. Импорты сторонних библиотек
-# (нет сторонних импортов)
-
 # 3. Импорты из проекта
 from src.database.db_creator import DBCreator
 from src.database.db_manager import DBManager
 from src.utils.data_loader import load_data_to_db
 from src.utils.user_interface import interact_with_user
+
+# 2. Импорты сторонних библиотек
+# (нет сторонних импортов)
+
 
 # 4. Константы модуля
 ENCODING = "utf-8"
