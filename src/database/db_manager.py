@@ -375,3 +375,113 @@ class DBManager:
         except psycopg2.Error as e:
             logger.error(f"Ошибка при выполнении запроса: {e}")
             raise
+
+    def get_vacancies_by_company(self, company_name: str) -> List[Dict[str, Any]]:
+        """
+        Получает список всех вакансий указанной компании.
+
+        Использует SQL запрос с JOIN для объединения таблиц employers и vacancies
+        и фильтрацию по названию компании.
+
+        Args:
+            company_name: Название компании для поиска (например, "HeadHunter")
+
+        Returns:
+            Список словарей с данными о вакансиях. Каждый словарь содержит:
+            - Все поля таблицы vacancies
+            - 'company_name': название компании
+
+        Example:
+            >>> db = DBManager()
+            >>> result = db.get_vacancies_by_company("HeadHunter")
+            >>> print(len(result))
+            42
+            >>> print(result[0]['company_name'])
+            HeadHunter
+        """
+        logger.info(f"Поиск вакансий по компании: {company_name}")
+
+        if not company_name or not company_name.strip():
+            logger.warning("Передано пустое название компании")
+            return []
+
+        # Используем параметризованный запрос для защиты от SQL-инъекций
+        query = """
+            SELECT
+                v.*,
+                e.name as company_name
+            FROM vacancies v
+            JOIN employers e ON v.employer_id = e.employer_id
+            WHERE LOWER(e.name) LIKE LOWER(%s)
+            ORDER BY v.salary_from DESC NULLS LAST, v.name
+        """
+
+        # Формируем паттерн для поиска (содержит название компании)
+        search_pattern = f"%{company_name.strip()}%"
+
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+            cursor.execute(query, (search_pattern,))
+            results = cursor.fetchall()
+
+            cursor.close()
+            conn.close()
+
+            # Преобразуем результаты в список словарей
+            result_list = [dict(row) for row in results]
+            logger.info(f"Найдено {len(result_list)} вакансий для компании '{company_name}'")
+            return result_list
+
+        except psycopg2.Error as e:
+            logger.error(f"Ошибка при выполнении запроса: {e}")
+            raise
+
+    def get_companies_list(self) -> List[Dict[str, Any]]:
+        """
+        Получает список всех компаний из базы данных.
+
+        Returns:
+            Список словарей с данными о компаниях. Каждый словарь содержит:
+            - 'employer_id': идентификатор компании
+            - 'name': название компании
+            - 'url': ссылка на компанию
+            - 'area': регион
+
+        Example:
+            >>> db = DBManager()
+            >>> result = db.get_companies_list()
+            >>> print(result[0]['name'])
+            HeadHunter
+        """
+        logger.info("Получение списка всех компаний")
+
+        query = """
+            SELECT
+                employer_id,
+                name,
+                url,
+                area
+            FROM employers
+            ORDER BY name
+        """
+
+        try:
+            conn = self._get_connection()
+            cursor = conn.cursor(cursor_factory=RealDictCursor)
+
+            cursor.execute(query)
+            results = cursor.fetchall()
+
+            cursor.close()
+            conn.close()
+
+            # Преобразуем результаты в список словарей
+            result_list = [dict(row) for row in results]
+            logger.info(f"Получено {len(result_list)} компаний")
+            return result_list
+
+        except psycopg2.Error as e:
+            logger.error(f"Ошибка при выполнении запроса: {e}")
+            raise

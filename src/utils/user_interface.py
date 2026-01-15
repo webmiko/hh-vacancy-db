@@ -79,6 +79,7 @@ def interact_with_user() -> None:
         print("3. Получить среднюю зарплату по вакансиям")
         print("4. Получить вакансии с зарплатой выше средней")
         print("5. Получить вакансии по ключевому слову")
+        print("6. Получить вакансии по названию компании")
         print("0. Выход")
         print("-" * 80)
 
@@ -221,5 +222,74 @@ def interact_with_user() -> None:
             except Exception as e:
                 print(f"\nОшибка при получении данных: {e}")
 
+        elif choice == "6":
+            try:
+                # Сначала показываем список компаний для удобства
+                print("\n" + "=" * 80)
+                print("СПИСОК КОМПАНИЙ")
+                print("=" * 80)
+
+                companies = db_manager.get_companies_list()
+
+                if not companies:
+                    print("В базе данных нет компаний.")
+                    continue
+
+                print("\nДоступные компании:")
+                for i, company in enumerate(companies[:20], 1):  # Показываем первые 20
+                    name = company.get("name", "Неизвестно")
+                    area = company.get("area", "")
+                    area_str = f" ({area})" if area else ""
+                    print(f"  {i}. {name}{area_str}")
+
+                if len(companies) > 20:
+                    print(f"  ... и еще {len(companies) - 20} компаний")
+
+                company_name = input("\nВведите название компании (или часть названия): ").strip()
+
+                if not company_name:
+                    print("Название компании не может быть пустым.")
+                    continue
+
+                print("\n" + "=" * 80)
+                print(f'ВАКАНСИИ КОМПАНИИ "{company_name.upper()}"')
+                print("=" * 80)
+
+                results = db_manager.get_vacancies_by_company(company_name)
+
+                if not results:
+                    print(f"Вакансии компании '{company_name}' не найдены.")
+                else:
+                    # Группируем по компаниям (на случай, если найдено несколько компаний)
+                    companies_found = {}
+                    for vacancy in results:
+                        comp_name = vacancy.get("company_name", "Неизвестно")
+                        if comp_name not in companies_found:
+                            companies_found[comp_name] = []
+                        companies_found[comp_name].append(vacancy)
+
+                    for comp_name, vacancies in companies_found.items():
+                        print(f"\n📌 Компания: {comp_name}")
+                        print(f"   Найдено вакансий: {len(vacancies)}")
+                        print("-" * 80)
+
+                        for i, vacancy in enumerate(vacancies, 1):
+                            name = vacancy.get("name", "Неизвестно")
+                            salary = format_salary(
+                                vacancy.get("salary_from"),
+                                vacancy.get("salary_to"),
+                                vacancy.get("currency"),
+                            )
+                            url = vacancy.get("url", "не указана")
+
+                            print(f"\n  {i}. {name}")
+                            print(f"     Зарплата: {salary}")
+                            print(f"     Ссылка: {url}")
+
+                print(f"\nВсего найдено вакансий: {len(results)}")
+
+            except Exception as e:
+                print(f"\nОшибка при получении данных: {e}")
+
         else:
-            print("\nНеверный выбор. Пожалуйста, выберите пункт меню от 0 до 5.")
+            print("\nНеверный выбор. Пожалуйста, выберите пункт меню от 0 до 6.")

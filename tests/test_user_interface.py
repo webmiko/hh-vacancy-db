@@ -311,3 +311,74 @@ class TestInteractWithUser:
         interact_with_user()
 
         mock_db_manager.get_vacancies_with_keyword.assert_called_once_with("Python")
+
+    @patch("src.utils.user_interface.DBManager")
+    @patch("builtins.input")
+    @patch("builtins.print")
+    def test_interact_with_user_option_6(
+        self, mock_print: Mock, mock_input: Mock, mock_db_manager_class: Mock
+    ) -> None:
+        """Тест выбора опции 6 (поиск вакансий по компании)."""
+        mock_db_manager = Mock()
+        mock_db_manager.get_companies_list.return_value = [
+            {"employer_id": 1455, "name": "HeadHunter", "url": "https://hh.ru/employer/1455", "area": "Москва"}
+        ]
+        mock_db_manager.get_vacancies_by_company.return_value = [
+            {
+                "vacancy_id": 123456,
+                "employer_id": 1455,
+                "name": "Python Developer",
+                "salary_from": 100000,
+                "salary_to": 150000,
+                "currency": "RUR",
+                "url": "https://hh.ru/vacancy/1",
+                "company_name": "HeadHunter",
+            }
+        ]
+        mock_db_manager_class.return_value = mock_db_manager
+
+        mock_input.side_effect = ["6", "HeadHunter", "0"]
+
+        interact_with_user()
+
+        mock_db_manager.get_companies_list.assert_called_once()
+        mock_db_manager.get_vacancies_by_company.assert_called_once_with("HeadHunter")
+
+    @patch("src.utils.user_interface.DBManager")
+    @patch("builtins.input")
+    @patch("builtins.print")
+    def test_interact_with_user_option_6_empty_company(
+        self, mock_print: Mock, mock_input: Mock, mock_db_manager_class: Mock
+    ) -> None:
+        """Тест выбора опции 6 с пустым названием компании."""
+        mock_db_manager = Mock()
+        mock_db_manager.get_companies_list.return_value = [
+            {"employer_id": 1455, "name": "HeadHunter", "url": "https://hh.ru/employer/1455", "area": "Москва"}
+        ]
+        mock_db_manager_class.return_value = mock_db_manager
+
+        mock_input.side_effect = ["6", "", "0"]
+
+        interact_with_user()
+
+        mock_db_manager.get_vacancies_by_company.assert_not_called()
+
+    @patch("src.utils.user_interface.DBManager")
+    @patch("builtins.input")
+    @patch("builtins.print")
+    def test_interact_with_user_option_6_empty_results(
+        self, mock_print: Mock, mock_input: Mock, mock_db_manager_class: Mock
+    ) -> None:
+        """Тест выбора опции 6 с пустым результатом."""
+        mock_db_manager = Mock()
+        mock_db_manager.get_companies_list.return_value = [
+            {"employer_id": 1455, "name": "HeadHunter", "url": "https://hh.ru/employer/1455", "area": "Москва"}
+        ]
+        mock_db_manager.get_vacancies_by_company.return_value = []
+        mock_db_manager_class.return_value = mock_db_manager
+
+        mock_input.side_effect = ["6", "NonExistent", "0"]
+
+        interact_with_user()
+
+        mock_db_manager.get_vacancies_by_company.assert_called_once_with("NonExistent")

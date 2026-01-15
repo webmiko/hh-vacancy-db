@@ -315,3 +315,127 @@ class TestDBManager:
         manager = DBManager()
         with pytest.raises(psycopg2.Error):
             manager.get_vacancies_with_keyword("Python")
+
+    @patch("src.database.db_manager.psycopg2.connect")
+    def test_get_vacancies_by_company(self, mock_connect: Mock, mock_connection: Mock, mock_cursor: Mock) -> None:
+        """Тест получения вакансий по названию компании."""
+        from psycopg2.extras import RealDictRow
+
+        mock_connect.return_value = mock_connection
+        mock_connection.cursor.return_value = mock_cursor
+
+        row = MagicMock(spec=RealDictRow)
+        row.__getitem__ = Mock(
+            side_effect=lambda key: {
+                "vacancy_id": 123456,
+                "employer_id": 1455,
+                "name": "Python Developer",
+                "salary_from": 100000,
+                "salary_to": 150000,
+                "currency": "RUR",
+                "url": "https://hh.ru/vacancy/1",
+                "company_name": "HeadHunter",
+            }[key]
+        )
+        row.keys = Mock(
+            return_value=["vacancy_id", "employer_id", "name", "salary_from", "salary_to", "currency", "url", "company_name"]
+        )
+
+        mock_cursor.fetchall.return_value = [row]
+
+        manager = DBManager()
+        result = manager.get_vacancies_by_company("HeadHunter")
+
+        assert len(result) == 1
+        assert result[0]["company_name"] == "HeadHunter"
+        mock_cursor.execute.assert_called_once()
+
+    @patch("src.database.db_manager.psycopg2.connect")
+    def test_get_vacancies_by_company_empty(self, mock_connect: Mock, mock_connection: Mock, mock_cursor: Mock) -> None:
+        """Тест получения вакансий по несуществующей компании."""
+        mock_connect.return_value = mock_connection
+        mock_connection.cursor.return_value = mock_cursor
+        mock_cursor.fetchall.return_value = []
+
+        manager = DBManager()
+        result = manager.get_vacancies_by_company("NonExistent")
+
+        assert result == []
+
+    @patch("src.database.db_manager.psycopg2.connect")
+    def test_get_vacancies_by_company_empty_string(
+        self, mock_connect: Mock, mock_connection: Mock, mock_cursor: Mock
+    ) -> None:
+        """Тест получения вакансий с пустым названием компании."""
+        manager = DBManager()
+        result = manager.get_vacancies_by_company("")
+
+        assert result == []
+
+    @patch("src.database.db_manager.psycopg2.connect")
+    def test_get_vacancies_by_company_error(
+        self, mock_connect: Mock, mock_connection: Mock, mock_cursor: Mock
+    ) -> None:
+        """Тест обработки ошибки при получении вакансий по компании."""
+        mock_connect.return_value = mock_connection
+        mock_connection.cursor.return_value = mock_cursor
+        mock_cursor.execute.side_effect = psycopg2.Error("Query failed")
+
+        manager = DBManager()
+        with pytest.raises(psycopg2.Error):
+            manager.get_vacancies_by_company("HeadHunter")
+
+    @patch("src.database.db_manager.psycopg2.connect")
+    def test_get_companies_list(self, mock_connect: Mock, mock_connection: Mock, mock_cursor: Mock) -> None:
+        """Тест получения списка всех компаний."""
+        from psycopg2.extras import RealDictRow
+
+        mock_connect.return_value = mock_connection
+        mock_connection.cursor.return_value = mock_cursor
+
+        row1 = MagicMock(spec=RealDictRow)
+        row1.__getitem__ = Mock(
+            side_effect=lambda key: {"employer_id": 1455, "name": "HeadHunter", "url": "https://hh.ru/employer/1455", "area": "Москва"}[key]
+        )
+        row1.keys = Mock(return_value=["employer_id", "name", "url", "area"])
+
+        row2 = MagicMock(spec=RealDictRow)
+        row2.__getitem__ = Mock(
+            side_effect=lambda key: {"employer_id": 3529, "name": "Яндекс", "url": "https://hh.ru/employer/3529", "area": "Москва"}[key]
+        )
+        row2.keys = Mock(return_value=["employer_id", "name", "url", "area"])
+
+        mock_cursor.fetchall.return_value = [row1, row2]
+
+        manager = DBManager()
+        result = manager.get_companies_list()
+
+        assert len(result) == 2
+        assert result[0]["name"] == "HeadHunter"
+        assert result[1]["name"] == "Яндекс"
+        mock_cursor.execute.assert_called_once()
+
+    @patch("src.database.db_manager.psycopg2.connect")
+    def test_get_companies_list_empty(self, mock_connect: Mock, mock_connection: Mock, mock_cursor: Mock) -> None:
+        """Тест получения пустого списка компаний."""
+        mock_connect.return_value = mock_connection
+        mock_connection.cursor.return_value = mock_cursor
+        mock_cursor.fetchall.return_value = []
+
+        manager = DBManager()
+        result = manager.get_companies_list()
+
+        assert result == []
+
+    @patch("src.database.db_manager.psycopg2.connect")
+    def test_get_companies_list_error(
+        self, mock_connect: Mock, mock_connection: Mock, mock_cursor: Mock
+    ) -> None:
+        """Тест обработки ошибки при получении списка компаний."""
+        mock_connect.return_value = mock_connection
+        mock_connection.cursor.return_value = mock_cursor
+        mock_cursor.execute.side_effect = psycopg2.Error("Query failed")
+
+        manager = DBManager()
+        with pytest.raises(psycopg2.Error):
+            manager.get_companies_list()
