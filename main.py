@@ -20,6 +20,8 @@ from src.utils.user_interface import interact_with_user
 
 # 4. Константы модуля
 ENCODING = "utf-8"
+FILE_WRITE_MODE = "w"
+TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 
 # 5. Настройка логирования
@@ -29,7 +31,7 @@ def _setup_logging() -> None:
     logs_dir.mkdir(exist_ok=True)
 
     log_file = logs_dir / "main.log"
-    file_handler = logging.FileHandler(log_file, mode="w", encoding=ENCODING)
+    file_handler = logging.FileHandler(log_file, mode=FILE_WRITE_MODE, encoding=ENCODING)
     file_handler.setLevel(logging.INFO)
 
     console_handler = logging.StreamHandler(sys.stdout)
@@ -37,7 +39,7 @@ def _setup_logging() -> None:
 
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
+        datefmt=TIMESTAMP_FORMAT,
     )
     file_handler.setFormatter(formatter)
     console_handler.setFormatter(formatter)

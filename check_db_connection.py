@@ -127,10 +127,18 @@ try:
     if tables:
         print(f"\n   📊 Найдено таблиц: {len(tables)}")
         for table in tables:
-            # Подсчет записей в таблице
-            cursor.execute(f"SELECT COUNT(*) FROM {table[0]};")
-            count = cursor.fetchone()[0]
-            print(f"      • {table[0]}: {count} записей")
+            # Подсчет записей в таблице (используем параметризованный запрос)
+            # Имя таблицы берется из information_schema, поэтому безопасно использовать Identifier
+            from psycopg2 import sql
+            table_name = table[0]
+            # Проверяем, что имя таблицы содержит только допустимые символы
+            if table_name.replace("_", "").replace("-", "").isalnum():
+                query = sql.SQL("SELECT COUNT(*) FROM {}").format(sql.Identifier(table_name))
+                cursor.execute(query)
+                count = cursor.fetchone()[0]
+                print(f"      • {table_name}: {count} записей")
+            else:
+                print(f"      • {table_name}: (пропущено - недопустимое имя)")
     else:
         print("   ⚠️  Таблицы не найдены")
         print("   ℹ️  Таблицы будут созданы автоматически при первом запуске")

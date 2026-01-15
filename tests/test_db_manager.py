@@ -16,26 +16,7 @@ from src.database.db_manager import DBManager
 
 
 # 5. Тестовые данные
-@pytest.fixture
-def mock_connection() -> Mock:
-    """Фикстура для мока подключения к БД."""
-    conn = Mock()
-    conn.cursor = Mock()
-    conn.close = Mock()
-    conn.commit = Mock()
-    return conn
-
-
-@pytest.fixture
-def mock_cursor() -> Mock:
-    """Фикстура для мока курсора."""
-    cursor = Mock()
-    cursor.execute = Mock()
-    cursor.fetchone = Mock()
-    cursor.fetchall = Mock()
-    cursor.close = Mock()
-    return cursor
-
+# (общие фикстуры определены в conftest.py)
 
 # 6. Тесты для DBManager
 class TestDBManager:

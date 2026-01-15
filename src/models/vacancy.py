@@ -156,10 +156,12 @@ class Vacancy:
             responsibility = snippet.get("responsibility")
 
         # Если нет в snippet, пробуем получить из description
+        # Примечание: API hh.ru обычно предоставляет данные в snippet,
+        # но на случай их отсутствия используем description как fallback
         if not requirement and not responsibility:
             description = data.get("description")
             if description:
-                # Простое разделение (в реальности может быть сложнее)
+                # Используем description как requirement, если snippet пуст
                 requirement = description
 
         # Обрабатываем дату публикации

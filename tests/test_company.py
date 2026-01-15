@@ -14,19 +14,8 @@ from src.models.company import Company
 
 
 # 5. Тестовые данные
-@pytest.fixture
-def sample_company_data() -> Dict[str, Any]:
-    """Фикстура с примером данных компании из API."""
-    return {
-        "id": "1455",
-        "name": "HeadHunter",
-        "url": "https://api.hh.ru/employers/1455",
-        "alternate_url": "http://hh.ru/employer/1455",
-        "open_vacancies": 42,
-        "description": "Крупная IT-компания",
-        "area": {"id": "1", "name": "Москва"},
-    }
-
+# (общие фикстуры определены в conftest.py)
+# Для этого модуля используется sample_company_data из conftest.py
 
 # 6. Тесты для Company
 class TestCompany:

@@ -20,6 +20,9 @@ from psycopg2.extras import RealDictCursor
 
 # 4. Константы модуля
 ENCODING = "utf-8"
+FILE_WRITE_MODE = "w"
+TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
+DEFAULT_RETURN_VALUE: List[Dict[str, Any]] = []
 
 # Загрузка переменных окружения
 load_dotenv()
@@ -43,12 +46,12 @@ def _setup_logger() -> logging.Logger:
     logs_dir.mkdir(exist_ok=True)
 
     log_file = logs_dir / "db_manager.log"
-    file_handler = logging.FileHandler(log_file, mode="w", encoding=ENCODING)
+    file_handler = logging.FileHandler(log_file, mode=FILE_WRITE_MODE, encoding=ENCODING)
     file_handler.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
+        datefmt=TIMESTAMP_FORMAT,
     )
     file_handler.setFormatter(formatter)
 
@@ -344,7 +347,7 @@ class DBManager:
 
         if not keyword or not keyword.strip():
             logger.warning("Передано пустое ключевое слово")
-            return []
+            return DEFAULT_RETURN_VALUE
 
         # Используем параметризованный запрос для защиты от SQL-инъекций
         query = """
@@ -403,7 +406,7 @@ class DBManager:
 
         if not company_name or not company_name.strip():
             logger.warning("Передано пустое название компании")
-            return []
+            return DEFAULT_RETURN_VALUE
 
         # Используем параметризованный запрос для защиты от SQL-инъекций
         query = """

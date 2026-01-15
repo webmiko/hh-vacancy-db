@@ -16,30 +16,7 @@ from src.utils.data_loader import load_data_to_db, DEFAULT_EMPLOYER_IDS
 
 
 # 5. Тестовые данные
-@pytest.fixture
-def sample_employer_data() -> Dict[str, Any]:
-    """Фикстура с примером данных работодателя."""
-    return {
-        "id": "1455",
-        "name": "HeadHunter",
-        "url": "https://api.hh.ru/employers/1455",
-        "alternate_url": "http://hh.ru/employer/1455",
-        "open_vacancies": 42,
-    }
-
-
-@pytest.fixture
-def sample_vacancy_data() -> Dict[str, Any]:
-    """Фикстура с примером данных вакансии."""
-    return {
-        "id": "123456",
-        "name": "Python Developer",
-        "alternate_url": "https://hh.ru/vacancy/123456",
-        "salary": {"from": 100000, "to": 150000, "currency": "RUR"},
-        "employer": {"id": "1455"},
-        "published_at": "2024-01-15T10:00:00+0300",
-    }
-
+# (общие фикстуры определены в conftest.py)
 
 # 6. Тесты для load_data_to_db
 class TestLoadDataToDB:

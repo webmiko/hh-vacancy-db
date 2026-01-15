@@ -15,27 +15,8 @@ from src.models.vacancy import Vacancy, _parse_datetime
 
 
 # 5. Тестовые данные
-@pytest.fixture
-def sample_vacancy_data() -> Dict[str, Any]:
-    """Фикстура с примером данных вакансии из API."""
-    return {
-        "id": "123456",
-        "name": "Python Developer",
-        "alternate_url": "https://hh.ru/vacancy/123456",
-        "url": "https://api.hh.ru/vacancies/123456",
-        "salary": {"from": 100000, "to": 150000, "currency": "RUR", "gross": False},
-        "snippet": {
-            "requirement": "Опыт работы от 3 лет. Знание Python, Django.",
-            "responsibility": "Разработка веб-приложений. Участие в проектах.",
-        },
-        "employer": {
-            "id": "1455",
-            "name": "HeadHunter",
-            "url": "https://api.hh.ru/employers/1455",
-        },
-        "published_at": "2024-01-15T10:00:00+0300",
-    }
-
+# (общие фикстуры определены в conftest.py)
+# Для этого модуля используется sample_vacancy_data_full из conftest.py
 
 # 6. Тесты для Vacancy
 class TestVacancy:
@@ -81,9 +62,9 @@ class TestVacancy:
         assert vacancy.responsibility is None
         assert vacancy.published_at is None
 
-    def test_from_api_data(self, sample_vacancy_data: Dict[str, Any]) -> None:
+    def test_from_api_data(self, sample_vacancy_data_full: Dict[str, Any]) -> None:
         """Тест создания Vacancy из данных API."""
-        vacancy = Vacancy.from_api_data(sample_vacancy_data)
+        vacancy = Vacancy.from_api_data(sample_vacancy_data_full)
         assert vacancy.vacancy_id == 123456
         assert vacancy.employer_id == 1455
         assert vacancy.name == "Python Developer"

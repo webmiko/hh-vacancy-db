@@ -20,6 +20,8 @@ from src.models.vacancy import Vacancy
 
 # 4. Константы модуля
 ENCODING = "utf-8"
+FILE_WRITE_MODE = "w"
+TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 # Список ID компаний для загрузки (минимум 10)
 DEFAULT_EMPLOYER_IDS = [
@@ -54,12 +56,12 @@ def _setup_logger() -> logging.Logger:
     logs_dir.mkdir(exist_ok=True)
 
     log_file = logs_dir / "data_loader.log"
-    file_handler = logging.FileHandler(log_file, mode="w", encoding=ENCODING)
+    file_handler = logging.FileHandler(log_file, mode=FILE_WRITE_MODE, encoding=ENCODING)
     file_handler.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
+        datefmt=TIMESTAMP_FORMAT,
     )
     file_handler.setFormatter(formatter)
 
