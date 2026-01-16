@@ -115,7 +115,12 @@ class HeadHunterAPI:
             response = requests.get(url, headers=self._headers, timeout=REQUEST_TIMEOUT)
             response.raise_for_status()
 
-            employer_data = response.json()
+            try:
+                employer_data = response.json()
+            except ValueError as e:
+                logger.error(f"Ошибка парсинга JSON ответа: {type(e).__name__} - {e}")
+                return None
+
             logger.info(f"Успешно получены данные о работодателе: {employer_data.get('name', 'Unknown')}")
             return cast(Dict[str, Any], employer_data)
 

@@ -150,6 +150,11 @@ try:
     print("=" * 80)
     
 except psycopg2.OperationalError as e:
+    # Закрываем соединение, если оно было создано
+    if "cursor" in locals():
+        cursor.close()
+    if "conn" in locals():
+        conn.close()
     error_msg = str(e).lower()
     if "does not exist" in error_msg or "не существует" in error_msg:
         print(f"   ⚠️  База данных '{DB_NAME}' не существует")

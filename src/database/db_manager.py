@@ -157,15 +157,14 @@ class DBManager:
             ORDER BY vacancies_count DESC, e.name
         """
 
+        conn = None
+        cursor = None
         try:
             conn = self._get_connection()
             cursor = conn.cursor(cursor_factory=RealDictCursor)
 
             cursor.execute(query)
             results = cursor.fetchall()
-
-            cursor.close()
-            conn.close()
 
             # Преобразуем результаты в список словарей
             result_list = [dict(row) for row in results]
@@ -175,6 +174,11 @@ class DBManager:
         except psycopg2.Error as e:
             logger.error(f"Ошибка при выполнении запроса: {e}")
             raise
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def get_all_vacancies(self) -> List[Dict[str, Any]]:
         """
@@ -215,15 +219,14 @@ class DBManager:
             ORDER BY v.salary_from DESC NULLS LAST, v.name
         """
 
+        conn = None
+        cursor = None
         try:
             conn = self._get_connection()
             cursor = conn.cursor(cursor_factory=RealDictCursor)
 
             cursor.execute(query)
             results = cursor.fetchall()
-
-            cursor.close()
-            conn.close()
 
             # Преобразуем результаты в список словарей
             result_list = [dict(row) for row in results]
@@ -233,6 +236,11 @@ class DBManager:
         except psycopg2.Error as e:
             logger.error(f"Ошибка при выполнении запроса: {e}")
             raise
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def get_avg_salary(self) -> float:
         """
@@ -258,15 +266,14 @@ class DBManager:
             WHERE salary_from IS NOT NULL
         """
 
+        conn = None
+        cursor = None
         try:
             conn = self._get_connection()
             cursor = conn.cursor()
 
             cursor.execute(query)
             result = cursor.fetchone()
-
-            cursor.close()
-            conn.close()
 
             avg_salary = result[0] if result and result[0] is not None else 0.0
             logger.info(f"Средняя зарплата: {avg_salary:.2f}")
@@ -275,6 +282,11 @@ class DBManager:
         except psycopg2.Error as e:
             logger.error(f"Ошибка при выполнении запроса: {e}")
             raise
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def get_vacancies_with_higher_salary(self) -> List[Dict[str, Any]]:
         """
@@ -305,15 +317,14 @@ class DBManager:
             ORDER BY salary_from DESC
         """
 
+        conn = None
+        cursor = None
         try:
             conn = self._get_connection()
             cursor = conn.cursor(cursor_factory=RealDictCursor)
 
             cursor.execute(query)
             results = cursor.fetchall()
-
-            cursor.close()
-            conn.close()
 
             # Преобразуем результаты в список словарей
             result_list = [dict(row) for row in results]
@@ -323,6 +334,11 @@ class DBManager:
         except psycopg2.Error as e:
             logger.error(f"Ошибка при выполнении запроса: {e}")
             raise
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def get_vacancies_with_keyword(self, keyword: str) -> List[Dict[str, Any]]:
         """
@@ -360,15 +376,14 @@ class DBManager:
         # Формируем паттерн для поиска (содержит ключевое слово)
         search_pattern = f"%{keyword.strip()}%"
 
+        conn = None
+        cursor = None
         try:
             conn = self._get_connection()
             cursor = conn.cursor(cursor_factory=RealDictCursor)
 
             cursor.execute(query, (search_pattern,))
             results = cursor.fetchall()
-
-            cursor.close()
-            conn.close()
 
             # Преобразуем результаты в список словарей
             result_list = [dict(row) for row in results]
@@ -378,6 +393,11 @@ class DBManager:
         except psycopg2.Error as e:
             logger.error(f"Ошибка при выполнении запроса: {e}")
             raise
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def get_vacancies_by_company(self, company_name: str) -> List[Dict[str, Any]]:
         """
@@ -422,15 +442,14 @@ class DBManager:
         # Формируем паттерн для поиска (содержит название компании)
         search_pattern = f"%{company_name.strip()}%"
 
+        conn = None
+        cursor = None
         try:
             conn = self._get_connection()
             cursor = conn.cursor(cursor_factory=RealDictCursor)
 
             cursor.execute(query, (search_pattern,))
             results = cursor.fetchall()
-
-            cursor.close()
-            conn.close()
 
             # Преобразуем результаты в список словарей
             result_list = [dict(row) for row in results]
@@ -440,6 +459,11 @@ class DBManager:
         except psycopg2.Error as e:
             logger.error(f"Ошибка при выполнении запроса: {e}")
             raise
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def get_companies_list(self) -> List[Dict[str, Any]]:
         """
@@ -470,15 +494,14 @@ class DBManager:
             ORDER BY name
         """
 
+        conn = None
+        cursor = None
         try:
             conn = self._get_connection()
             cursor = conn.cursor(cursor_factory=RealDictCursor)
 
             cursor.execute(query)
             results = cursor.fetchall()
-
-            cursor.close()
-            conn.close()
 
             # Преобразуем результаты в список словарей
             result_list = [dict(row) for row in results]
@@ -488,3 +511,8 @@ class DBManager:
         except psycopg2.Error as e:
             logger.error(f"Ошибка при выполнении запроса: {e}")
             raise
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()

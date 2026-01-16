@@ -124,6 +124,8 @@ def load_data_to_db(
     db_password = password or os.getenv("DB_PASSWORD", "")
 
     # Подключение к БД
+    conn = None
+    cursor = None
     try:
         conn = psycopg2.connect(
             host=db_host,
@@ -228,9 +230,12 @@ def load_data_to_db(
 
     except Exception as e:
         logger.critical(f"Критическая ошибка при загрузке данных: {e}")
-        conn.rollback()
+        if conn:
+            conn.rollback()
         raise
     finally:
-        cursor.close()
-        conn.close()
-        logger.info("Подключение к базе данных закрыто")
+        if cursor:
+            cursor.close()
+        if conn:
+            conn.close()
+            logger.info("Подключение к базе данных закрыто")

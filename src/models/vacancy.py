@@ -122,13 +122,20 @@ class Vacancy:
             >>> print(vacancy.name)
             Python Developer
         """
-        vacancy_id = int(data.get("id", 0))
+        # Безопасное преобразование ID в int
+        try:
+            vacancy_id = int(data.get("id", 0))
+        except (ValueError, TypeError):
+            vacancy_id = 0
 
         # Получаем employer_id из данных или из параметра
         if employer_id is None:
             employer_obj = data.get("employer")
             if isinstance(employer_obj, dict):
-                employer_id = int(employer_obj.get("id", 0))
+                try:
+                    employer_id = int(employer_obj.get("id", 0))
+                except (ValueError, TypeError):
+                    employer_id = 0
             else:
                 employer_id = 0
 
