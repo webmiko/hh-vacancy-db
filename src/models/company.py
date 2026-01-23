@@ -77,7 +77,12 @@ class Company:
             >>> print(company.name)
             HeadHunter
         """
-        employer_id = int(data.get("id", 0))
+        # Безопасное преобразование ID в int
+        try:
+            employer_id = int(data.get("id", 0))
+        except (ValueError, TypeError):
+            employer_id = 0
+
         name = data.get("name", "")
         url = data.get("alternate_url") or data.get("url")
         description = data.get("description")

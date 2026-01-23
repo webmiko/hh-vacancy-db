@@ -11,6 +11,7 @@ HH Vacancy DB — это консольное приложение для раб
 - 💾 Загружать данные о компаниях и вакансиях в БД
 - 📊 Получать статистику и анализировать вакансии через SQL запросы
 - 🔎 Искать вакансии по ключевым словам
+- 🏢 Фильтровать вакансии по названию компании
 
 ## Особенности
 
@@ -63,6 +64,20 @@ DB_PASSWORD=your_password
 
 5. Убедитесь, что PostgreSQL запущен и доступен
 
+### Проверка подключения к базе данных
+
+Для проверки подключения к PostgreSQL можно использовать скрипт:
+
+```bash
+poetry run python check_db_connection.py
+```
+
+Скрипт проверит:
+- Подключение к серверу PostgreSQL
+- Существование базы данных
+- Подключение к целевой базе данных
+- Наличие таблиц и количество записей
+
 ## Использование
 
 ### Запуск программы
@@ -83,9 +98,10 @@ poetry run python main.py
 2. Меню программы:
    - Получить список всех компаний и количество вакансий
    - Получить список всех вакансий
-   - Получить среднюю зарплату
+   - Получить среднюю зарплату по вакансиям
    - Получить вакансии с зарплатой выше средней
    - Получить вакансии по ключевому слову
+   - Получить вакансии по названию компании
 
 ## Структура проекта
 
@@ -101,14 +117,28 @@ hh-vacancy-db/
 │   │   ├── company.py        # Модель компании
 │   │   └── vacancy.py        # Модель вакансии
 │   └── utils/                 # Утилиты
-│       └── config.py         # Конфигурация
+│       ├── data_loader.py    # Загрузка данных из API в БД
+│       └── user_interface.py # Пользовательский интерфейс
 ├── tests/                     # Тесты
-├── data/                      # Данные (если нужны)
+│   ├── test_company.py       # Тесты модели Company
+│   ├── test_vacancy.py        # Тесты модели Vacancy
+│   ├── test_hh_api.py         # Тесты API модуля
+│   ├── test_db_creator.py     # Тесты создания БД
+│   ├── test_db_manager.py     # Тесты работы с БД
+│   ├── test_data_loader.py     # Тесты загрузки данных
+│   └── test_user_interface.py # Тесты пользовательского интерфейса
+├── sql/                       # SQL скрипты
+│   ├── create_database.sql   # Создание БД
+│   ├── create_tables.sql      # Создание таблиц
+│   └── drop_tables.sql        # Удаление таблиц
 ├── logs/                      # Логи
+├── htmlcov/                   # HTML отчет о покрытии тестами
 ├── main.py                    # Точка входа
+├── check_db_connection.py     # Скрипт проверки подключения к БД
 ├── .env.example               # Шаблон переменных окружения
 ├── pyproject.toml             # Конфигурация Poetry
 ├── PROJECT_PLAN.md            # План проекта
+├── CHECKLIST_REPORT.md        # Отчет по проверке чеклиста
 └── README.md                  # Документация
 ```
 
@@ -125,7 +155,36 @@ poetry run pytest -v
 
 # С покрытием кода
 poetry run pytest --cov=src --cov-report=term
+
+# С HTML отчетом о покрытии
+poetry run pytest --cov=src --cov-report=html
 ```
+
+### Покрытие кода тестами
+
+Проект имеет высокое покрытие тестами:
+
+- **Общее покрытие: 96.03%**
+- **Количество тестов: 120**
+- **Структура тестов:**
+  - `test_company.py` - тесты модели Company
+  - `test_vacancy.py` - тесты модели Vacancy
+  - `test_hh_api.py` - тесты API модуля
+  - `test_db_creator.py` - тесты создания БД
+  - `test_db_manager.py` - тесты работы с БД
+  - `test_data_loader.py` - тесты загрузки данных
+  - `test_user_interface.py` - тесты пользовательского интерфейса
+
+**Покрытие по модулям:**
+- `src/models/company.py`: 100%
+- `src/models/vacancy.py`: 96.43%
+- `src/api/hh_api.py`: 96.46%
+- `src/database/db_creator.py`: 99.24%
+- `src/database/db_manager.py`: 99.37%
+- `src/utils/data_loader.py`: 92.93%
+- `src/utils/user_interface.py`: 91.33%
+
+HTML отчет о покрытии доступен в папке `htmlcov/` после запуска тестов с флагом `--cov-report=html`.
 
 ## Разработка
 
@@ -198,8 +257,37 @@ poetry run mypy src/
 ### Структура БД
 
 - **Таблица employers**: Информация о компаниях
+  - `employer_id` (PRIMARY KEY) - уникальный идентификатор
+  - `name` - название компании
+  - `url` - ссылка на компанию
+  - `description` - описание компании
+  - `area` - регион расположения
+  - `open_vacancies` - количество открытых вакансий
+
 - **Таблица vacancies**: Информация о вакансиях
-- **Связь**: Внешний ключ от vacancies к employers
+  - `vacancy_id` (PRIMARY KEY) - уникальный идентификатор
+  - `employer_id` (FOREIGN KEY) - связь с таблицей employers
+  - `name` - название вакансии
+  - `url` - ссылка на вакансию
+  - `salary_from`, `salary_to` - диапазон зарплаты
+  - `currency` - валюта зарплаты
+  - `requirement` - требования к кандидату
+  - `responsibility` - обязанности
+  - `published_at` - дата публикации
+
+- **Связь**: Внешний ключ `fk_employer` от `vacancies.employer_id` к `employers.employer_id` с каскадным удалением
+
+### Методы работы с БД
+
+Класс `DBManager` предоставляет следующие методы:
+
+- `get_companies_and_vacancies_count()` - список компаний с количеством вакансий (JOIN)
+- `get_all_vacancies()` - все вакансии с информацией о компаниях (JOIN)
+- `get_avg_salary()` - средняя зарплата по вакансиям (AVG)
+- `get_vacancies_with_higher_salary()` - вакансии с зарплатой выше средней (WHERE с подзапросом)
+- `get_vacancies_with_keyword(keyword)` - поиск вакансий по ключевому слову (LIKE)
+- `get_vacancies_by_company(company_name)` - фильтрация вакансий по компании (JOIN + LIKE)
+- `get_companies_list()` - список всех компаний
 
 ## Лицензия
 

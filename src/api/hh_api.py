@@ -24,6 +24,10 @@ REQUEST_TIMEOUT = 10
 MAX_PAGES = 20
 DEFAULT_PER_PAGE = 100
 ENCODING = "utf-8"
+FILE_WRITE_MODE = "w"
+TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
+DEFAULT_RETURN_VALUE: List[Dict[str, Any]] = []
+DEFAULT_RETURN_DICT: Dict[str, Any] = {}
 
 
 # 5. Приватные функции
@@ -44,12 +48,12 @@ def _setup_logger() -> logging.Logger:
     logs_dir.mkdir(exist_ok=True)
 
     log_file = logs_dir / "hh_api.log"
-    file_handler = logging.FileHandler(log_file, mode="w", encoding=ENCODING)
+    file_handler = logging.FileHandler(log_file, mode=FILE_WRITE_MODE, encoding=ENCODING)
     file_handler.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
+        datefmt=TIMESTAMP_FORMAT,
     )
     file_handler.setFormatter(formatter)
 
@@ -111,7 +115,12 @@ class HeadHunterAPI:
             response = requests.get(url, headers=self._headers, timeout=REQUEST_TIMEOUT)
             response.raise_for_status()
 
-            employer_data = response.json()
+            try:
+                employer_data = response.json()
+            except ValueError as e:
+                logger.error(f"Ошибка парсинга JSON ответа: {type(e).__name__} - {e}")
+                return None
+
             logger.info(f"Успешно получены данные о работодателе: {employer_data.get('name', 'Unknown')}")
             return cast(Dict[str, Any], employer_data)
 
@@ -154,7 +163,7 @@ class HeadHunterAPI:
 
         if not isinstance(employer_id, int) or employer_id <= 0:
             logger.warning(f"Некорректный ID работодателя: {employer_id}")
-            return []
+            return DEFAULT_RETURN_VALUE
 
         all_vacancies: List[Dict[str, Any]] = []
         page = 0
@@ -215,16 +224,16 @@ class HeadHunterAPI:
                 logger.warning(f"Работодатель с ID {employer_id} не найден")
             else:
                 logger.error(f"HTTP ошибка при получении вакансий: {e.response.status_code} - {e}")
-            return []
+            return DEFAULT_RETURN_VALUE
         except requests.RequestException as e:
             logger.error(f"Ошибка запроса к API при получении вакансий: {type(e).__name__} - {e}")
-            return []
+            return DEFAULT_RETURN_VALUE
         except KeyError as e:
             logger.error(f"Ошибка: отсутствует ключ в данных API: {e}")
-            return []
+            return DEFAULT_RETURN_VALUE
         except Exception as e:
             logger.critical(f"Неожиданная ошибка при получении вакансий: {type(e).__name__} - {e}")
-            return []
+            return DEFAULT_RETURN_VALUE
 
     def get_employer_vacancies(self, employer_id: int) -> Dict[str, Any]:
         """

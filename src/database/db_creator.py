@@ -21,6 +21,8 @@ from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
 
 # 4. Константы модуля
 ENCODING = "utf-8"
+FILE_WRITE_MODE = "w"
+TIMESTAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 # Загрузка переменных окружения
 load_dotenv()
@@ -44,12 +46,12 @@ def _setup_logger() -> logging.Logger:
     logs_dir.mkdir(exist_ok=True)
 
     log_file = logs_dir / "db_creator.log"
-    file_handler = logging.FileHandler(log_file, mode="w", encoding=ENCODING)
+    file_handler = logging.FileHandler(log_file, mode=FILE_WRITE_MODE, encoding=ENCODING)
     file_handler.setLevel(logging.DEBUG)
 
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
-        datefmt="%Y-%m-%d %H:%M:%S",
+        datefmt=TIMESTAMP_FORMAT,
     )
     file_handler.setFormatter(formatter)
 
@@ -155,6 +157,8 @@ class DBCreator:
         """
         logger.info(f"Начало создания базы данных {self.database}")
 
+        conn = None
+        cursor = None
         try:
             conn = self._get_connection_to_postgres()
             cursor = conn.cursor()
@@ -174,12 +178,14 @@ class DBCreator:
                 cursor.execute(sql.SQL("CREATE DATABASE {}").format(sql.Identifier(self.database)))
                 logger.info(f"База данных {self.database} успешно создана")
 
-            cursor.close()
-            conn.close()
-
         except psycopg2.Error as e:
             logger.error(f"Ошибка при создании базы данных: {e}")
             raise
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def create_tables(self) -> None:
         """
@@ -276,14 +282,16 @@ class DBCreator:
             conn.commit()
             logger.info("Все таблицы и индексы успешно созданы")
 
-            cursor.close()
-            conn.close()
-
         except psycopg2.Error as e:
             logger.error(f"Ошибка при создании таблиц: {e}")
             if conn:
                 conn.rollback()
             raise
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def drop_tables(self) -> None:
         """
@@ -311,14 +319,16 @@ class DBCreator:
             conn.commit()
             logger.info("Все таблицы успешно удалены")
 
-            cursor.close()
-            conn.close()
-
         except psycopg2.Error as e:
             logger.error(f"Ошибка при удалении таблиц: {e}")
             if conn:
                 conn.rollback()
             raise
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def database_exists(self) -> bool:
         """
@@ -327,6 +337,8 @@ class DBCreator:
         Returns:
             True, если база данных существует, False в противном случае
         """
+        conn = None
+        cursor = None
         try:
             conn = self._get_connection_to_postgres()
             cursor = conn.cursor()
@@ -340,14 +352,16 @@ class DBCreator:
 
             exists = cursor.fetchone() is not None
 
-            cursor.close()
-            conn.close()
-
             return exists
 
         except psycopg2.Error as e:
             logger.error(f"Ошибка при проверке существования базы данных: {e}")
             return False
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
     def tables_exist(self) -> bool:
         """
@@ -356,6 +370,8 @@ class DBCreator:
         Returns:
             True, если обе таблицы существуют, False в противном случае
         """
+        conn = None
+        cursor = None
         try:
             conn = self._get_connection_to_database()
             cursor = conn.cursor()
@@ -373,11 +389,13 @@ class DBCreator:
             count = cast(int, result[0]) if result else 0
             exists = count == 2
 
-            cursor.close()
-            conn.close()
-
             return exists
 
         except psycopg2.Error as e:
             logger.error(f"Ошибка при проверке существования таблиц: {e}")
             return False
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
